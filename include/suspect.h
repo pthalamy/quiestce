@@ -1,6 +1,9 @@
 #ifndef SUSPECT_H
 #define SUSPECT_H
 
+#include <stdlib.h>
+#include <stdio.h>
+
 #include "ensemble.h"
 
 /* Suspect du jeu Qui est-ce. */
@@ -36,5 +39,25 @@ void retirer_suspect(struct liste_suspects *l, struct suspect *s);
 
 /* Affiche les noms de tous les suspects de la liste l. */
 void affiche_liste_suspects(struct liste_suspects *l);
+
+/* Genre */
+#define HOMME             0x0b0000000000000001
+#define FEMME             0x0b0000000000000010
+/* Pilosité */
+#define MOUSTACHE         0x0b0000000000000100
+#define BARBE             0x0b0000000000001000
+/* Coiffure */
+#define COIFFURE_CHAUVE   0x0b0000000000010000
+#define COIFFURE_LONG     0x0b0000000000100000
+#define COIFFURE_COURT    0x0b0000000001000000
+/* Couleur cheveux */
+#define CHEVEUX_NOIRS     0x0b0000000010000000
+#define CHEVEUX_CHATAINS  0x0b0000000100000000
+#define CHEVEUX_BLANCS    0x0b0000001000000000
+#define CHEVEUX_ROUX      0x0b0000010000000000
+#define CHEVEUX_BLONDS    0x0b0000100000000000
+/* Accessoires */
+#define LUNETTES          0x0b0001000000000000
+#define CHAPEAU           0x0b0010000000000000
 
 #endif /* SUSPECT_H */
