@@ -1,0 +1,5 @@
+# Compilation products
+**/*.o
+testsuite/test_chainage
+
+testsuite/test_ensemble
