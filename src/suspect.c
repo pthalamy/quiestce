@@ -65,13 +65,10 @@ void retirer_suspect(struct liste_suspects *liste, struct suspect *suspect) {
 }
 
 void affiche_liste_suspects(struct liste_suspects *l) {
-  printf ("NULL ");
-
   for (struct suspect *scour = l->tete;
        scour != NULL;
        scour = scour->suiv) {
-    printf ("-> Nom : %s – attributs : %x ", scour->nom, scour->attributs);
+	  printf ("<-> Nom : %s", scour->nom);
+	  ensemble_afficher (" – attributs : ", scour->attributs);
   }
-
-  printf ("-> NULL\n");
 }
