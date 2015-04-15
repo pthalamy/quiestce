@@ -3,3 +3,5 @@
 testsuite/test_chainage
 
 testsuite/test_ensemble
+
+bin/quiestce
