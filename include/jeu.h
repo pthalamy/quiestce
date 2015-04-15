@@ -7,8 +7,10 @@
 #define NOMBRE_SUSPECTS  24
 
 struct question {
-  char * str;
-  bool toAsk;
+	char * str;
+	bool toAsk;
+	uint8_t nb_qliees;
+	uint8_t *qliees;	/* Questions liées à ne plus poser si positif */
 };
 
 /* Attributs des suspects */
