@@ -31,14 +31,18 @@ int main(void)
 	ensemble_t esuspect = ensemble_vide();
 
 /* Execution de la boucle de jeu principale */
+	printf ("\t\t\t\033[32;1m== ENSIMAG Qui-est-ce ? ==\033[0m\n");
+	printf ("Choisissez un personnage et répondez aux questions.\n\n");
 	execution_jeu (ls, questions, esuspect);
 
 /* Fin de partie */
+	printf ("\n--> Partie terminée.\n");
 	if (ls->nb_suspects == 1) {
-		printf ("Le suspect est : %s\n", ls->tete->nom);
+		printf ("Le personnage que vous avez choisi est : \033[34;1m%s\033[0m\n"
+			, ls->tete->nom);
 	} else {
 		printf ("Personne ne correspond à la description.\n");
-		printf ("Vous avez MENTI !\n");
+		printf ("Vous avez \033[31;1mMENTI\033[0m !\n");
 		return 1;
 	}
 
@@ -250,7 +254,8 @@ execution_jeu(struct liste_suspects *ls,
 			        maj_suspects (ls, id, false);
 			}
 
-			ensemble_afficher ("suspect : ", esuspect);
+			/* DEBUG */
+			/* ensemble_afficher ("suspect : ", esuspect); */
 		}
 	}
 }
@@ -271,7 +276,8 @@ maj_suspects(struct liste_suspects *ls, uint8_t id, bool traitPresent)
 		scour = ssuiv;
 	}
 
-	affiche_liste_suspects (ls);
+	/* DEBUG */
+	/* affiche_liste_suspects (ls); */
 }
 
 uint8_t
