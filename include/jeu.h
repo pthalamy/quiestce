@@ -29,7 +29,7 @@ uint8_t qrestantes(const struct question *questions);
 #define SEBASTIEN         0b0000010001000001
 #define OLIVIER           0b0000000101000101
 #define NICOLAS           0b0000010000010001
-#define LUC               0b0000100001000001
+#define LUC               0b0000100001001001
 #define SIMON             0b0010000101000001
 #define MAXIME            0b0000000011000101
 #define CEDRIC            0b0001000010010001

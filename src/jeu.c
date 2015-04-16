@@ -12,6 +12,7 @@ void execution_jeu(struct liste_suspects *ls,
 		   struct question *questions,
 		   ensemble_t esuspect);
 void libere_questions (struct question *questions);
+void clear(void);
 
 int main(void)
 {
@@ -48,7 +49,8 @@ int main(void)
 	return 0;
 }
 
-void init_questions(struct question *questions)
+void
+init_questions(struct question *questions)
 {
 	questions[0].str = "Le suspect est-il un homme ? [o/n]\n";
 	questions[0].nb_qliees = 0;
@@ -144,7 +146,8 @@ void init_questions(struct question *questions)
 	        questions[i].toAsk = true;
 }
 
-void init_suspects (struct liste_suspects *ls)
+void
+init_suspects (struct liste_suspects *ls)
 {
 	struct suspect *suspects[NOMBRE_SUSPECTS];
 
@@ -177,37 +180,16 @@ void init_suspects (struct liste_suspects *ls)
 	        ajouter_suspect(ls, suspects[i]);
 }
 
-uint8_t qrestantes(const struct question *questions)
+void
+clear_input (void)
 {
-        uint8_t count = 0;
-	for (uint8_t i = 0; i < NOMBRE_QUESTIONS; i++)
-		if (questions[i].toAsk)
-			count++;
-
-	return count;
+	while (getchar () != '\n');
 }
 
-void maj_suspects(struct liste_suspects *ls, uint8_t id, bool traitPresent)
-{
-	/* Mise à jour de la liste */
-	struct suspect *scour = ls->tete;
-	struct suspect *ssuiv;
-
-	while (scour != NULL) {
-		ssuiv = scour->suiv;
-		if ((traitPresent) ^ (ensemble_appartient
-				      (scour->attributs, id))) {
-			retirer_suspect (ls, scour);
-		}
-		scour = ssuiv;
-	}
-
-	affiche_liste_suspects (ls);
-}
-
-void execution_jeu(struct liste_suspects *ls,
-		   struct question *questions,
-		   ensemble_t esuspect)
+void
+execution_jeu(struct liste_suspects *ls,
+	      struct question *questions,
+	      ensemble_t esuspect)
 {
 	while ((ls->nb_suspects > 1) && (qrestantes(questions) > 0)) {
 		uint8_t id = rand() % NOMBRE_QUESTIONS;
@@ -225,6 +207,8 @@ void execution_jeu(struct liste_suspects *ls,
 						 "Répondez par (o)ui"
 						 " ou (n)on !\n");
 				}
+
+				clear_input();
 			}
 
 			if (ans == 'o') {
@@ -239,11 +223,11 @@ void execution_jeu(struct liste_suspects *ls,
 				}
 
 				for (uint8_t i = 0; i < questions[id].nb_qliees; i++) {
-					questions[
-						questions[id].qliees[i]].toAsk = false;
+					questions[questions[id].qliees[i]].toAsk
+						= false;
 				}
 
-			        maj_suspects(ls, id, true);
+			        maj_suspects (ls, id, true);
 			} else {
 				ensemble_retirer_elt(&esuspect, id);
 
@@ -263,7 +247,7 @@ void execution_jeu(struct liste_suspects *ls,
 					        questions[id].qliees[i]);
 				}
 
-			        maj_suspects(ls, id, false);
+			        maj_suspects (ls, id, false);
 			}
 
 			ensemble_afficher ("suspect : ", esuspect);
@@ -271,7 +255,38 @@ void execution_jeu(struct liste_suspects *ls,
 	}
 }
 
-void libere_questions (struct question *questions)
+void
+maj_suspects(struct liste_suspects *ls, uint8_t id, bool traitPresent)
+{
+	/* Mise à jour de la liste */
+	struct suspect *scour = ls->tete;
+	struct suspect *ssuiv;
+
+	while (scour != NULL) {
+		ssuiv = scour->suiv;
+		if ((traitPresent) ^ (ensemble_appartient
+				      (scour->attributs, id))) {
+			retirer_suspect (ls, scour);
+		}
+		scour = ssuiv;
+	}
+
+	affiche_liste_suspects (ls);
+}
+
+uint8_t
+qrestantes(const struct question *questions)
+{
+        uint8_t count = 0;
+	for (uint8_t i = 0; i < NOMBRE_QUESTIONS; i++)
+		if (questions[i].toAsk)
+			count++;
+
+	return count;
+}
+
+void
+libere_questions (struct question *questions)
 {
 	for (uint8_t i = 0; i < NOMBRE_QUESTIONS; i++) {
 		free (questions[i].qliees);
