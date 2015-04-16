@@ -69,6 +69,6 @@ void affiche_liste_suspects(struct liste_suspects *l) {
        scour != NULL;
        scour = scour->suiv) {
 	  printf ("<-> Nom : %s", scour->nom);
-	  ensemble_afficher (" – attributs : ", scour->attributs);
+	  ensemble_afficher ("\t–\tattributs : ", scour->attributs);
   }
 }

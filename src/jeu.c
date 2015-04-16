@@ -7,6 +7,10 @@
 
 void init_questions(struct question *questions);
 void init_suspects (struct liste_suspects *ls);
+void maj_suspects(struct liste_suspects *ls, uint8_t id, bool traitPresent);
+void execution_jeu(struct liste_suspects *ls,
+		   struct question *questions,
+		   ensemble_t esuspect);
 
 int main(void)
 {
@@ -21,84 +25,13 @@ int main(void)
 	struct liste_suspects *ls = creer_liste_suspects();
 	init_suspects (ls);
 
-	/* Création d'un ensemble d'attributs vide afin de décrire le suspect */
+/* Création d'un ensemble d'attributs vide afin de décrire le suspect */
 	ensemble_t esuspect = ensemble_vide();
-	int8_t nb_qposees = 0;
 
-	while ((ls->nb_suspects > 1) && (nb_qposees < NOMBRE_QUESTIONS)) {
-		uint8_t id = rand() % NOMBRE_QUESTIONS;
-		if (questions[id].toAsk) {
-			printf (questions[id].str);
-			questions[id].toAsk = false;
+/* Execution de la boucle de jeu principale */
+	execution_jeu (ls, questions, esuspect);
 
-			char ans = '0';
-			while ((ans != 'o') && (ans != 'n')) {
-				scanf ("%c", &ans);
-
-				if ((ans != 'o') && (ans != 'n')
-				    && (ans != '\n')) {
-					fprintf (stderr,
-						 "Répondez par (o)ui"
-						 " ou (n)on !\n");
-				}
-			}
-
-			if (ans == 'o') {
-				ensemble_ajouter_elt(&esuspect, id);
-
-				if (id == 0) {
-					questions[1].toAsk = false;
-					ensemble_retirer_elt(&esuspect, 1);
-				} else if (id == 1) {
-					questions[0].toAsk = false;
-					ensemble_retirer_elt(&esuspect, 0);
-				}
-
-				for (uint8_t i = 0; i < questions[id].nb_qliees; i++) {
-					questions[
-						questions[id].qliees[i]].toAsk = false;
-				}
-
-			} else {
-				ensemble_retirer_elt(&esuspect, id);
-
-				if (id == 0) {
-					questions[1].toAsk = false;
-					ensemble_ajouter_elt(&esuspect, 1);
-				} else if (id == 1) {
-					questions[0].toAsk = false;
-					ensemble_ajouter_elt(&esuspect, 0);
-				}
-
-				for (uint8_t i = 0;
-				     i < questions[id].nb_qliees;
-				     i++) {
-					ensemble_retirer_elt(
-						&esuspect,
-					        questions[id].qliees[i]);
-				}
-
-			}
-
-			ensemble_afficher ("suspect : ", esuspect);
-			/* Mise à jour de la liste */
-			struct suspect *scour = ls->tete;
-			struct suspect *ssuiv;
-
-			while (scour != NULL) {
-				ssuiv = scour->suiv;
-				if (ensemble_intersection(esuspect, scour->attributs)
-				    != esuspect) {
-					retirer_suspect (ls, scour);
-				}
-				scour = ssuiv;
-			}
-			affiche_liste_suspects (ls);
-
-			nb_qposees++;
-		}
-	}
-
+/* Fin de partie */
 	if (ls->nb_suspects == 1) {
 		printf ("Le suspect est : %s\n", ls->tete->nom);
 	} else {
@@ -213,7 +146,7 @@ void init_suspects (struct liste_suspects *ls)
 {
 	struct suspect *suspects[NOMBRE_SUSPECTS];
 
-	suspects[0] = creer_suspect("André", ANDRE);
+	suspects[0] = creer_suspect("André ", ANDRE);
 	suspects[1] = creer_suspect("Philippe", PHILIPPE);
 	suspects[2] = creer_suspect("Jean-Louis", JEAN_LOUIS);
 	suspects[3] = creer_suspect("François", FRANCOIS);
@@ -226,8 +159,8 @@ void init_suspects (struct liste_suspects *ls)
 	suspects[10] = creer_suspect("Sébastien", SEBASTIEN);
 	suspects[11] = creer_suspect("Olivier", OLIVIER);
 	suspects[12] = creer_suspect("Nicolas", NICOLAS);
-	suspects[13] = creer_suspect("Luc", LUC);
-	suspects[14] = creer_suspect("Simon", SIMON);
+	suspects[13] = creer_suspect("Luc   ", LUC);
+	suspects[14] = creer_suspect("Simon ", SIMON);
 	suspects[15] = creer_suspect("Maxime", MAXIME);
 	suspects[16] = creer_suspect("Cédric", CEDRIC);
 	suspects[17] = creer_suspect("Pierre", PIERRE);
@@ -240,4 +173,98 @@ void init_suspects (struct liste_suspects *ls)
 
 	for (uint8_t i = 0; i < NOMBRE_SUSPECTS; i++)
 	        ajouter_suspect(ls, suspects[i]);
+}
+
+uint8_t qrestantes(const struct question *questions)
+{
+        uint8_t count = 0;
+	for (uint8_t i = 0; i < NOMBRE_QUESTIONS; i++)
+		if (questions[i].toAsk)
+			count++;
+
+	return count;
+}
+
+void maj_suspects(struct liste_suspects *ls, uint8_t id, bool traitPresent)
+{
+	/* Mise à jour de la liste */
+	struct suspect *scour = ls->tete;
+	struct suspect *ssuiv;
+
+	while (scour != NULL) {
+		ssuiv = scour->suiv;
+		if ((traitPresent) ^ (ensemble_appartient
+				      (scour->attributs, id))) {
+			retirer_suspect (ls, scour);
+		}
+		scour = ssuiv;
+	}
+
+	affiche_liste_suspects (ls);
+}
+
+void execution_jeu(struct liste_suspects *ls,
+		   struct question *questions,
+		   ensemble_t esuspect)
+{
+	while ((ls->nb_suspects > 1) && (qrestantes(questions) > 0)) {
+		uint8_t id = rand() % NOMBRE_QUESTIONS;
+		if (questions[id].toAsk) {
+			printf (questions[id].str);
+			questions[id].toAsk = false;
+
+			char ans = '0';
+			while ((ans != 'o') && (ans != 'n')) {
+				scanf ("%c", &ans);
+
+				if ((ans != 'o') && (ans != 'n')
+				    && (ans != '\n')) {
+					fprintf (stderr,
+						 "Répondez par (o)ui"
+						 " ou (n)on !\n");
+				}
+			}
+
+			if (ans == 'o') {
+				ensemble_ajouter_elt(&esuspect, id);
+
+				if (id == 0) {
+					questions[1].toAsk = false;
+					ensemble_retirer_elt(&esuspect, 1);
+				} else if (id == 1) {
+					questions[0].toAsk = false;
+					ensemble_retirer_elt(&esuspect, 0);
+				}
+
+				for (uint8_t i = 0; i < questions[id].nb_qliees; i++) {
+					questions[
+						questions[id].qliees[i]].toAsk = false;
+				}
+
+			        maj_suspects(ls, id, true);
+			} else {
+				ensemble_retirer_elt(&esuspect, id);
+
+				if (id == 0) {
+					questions[1].toAsk = false;
+					ensemble_ajouter_elt(&esuspect, 1);
+				} else if (id == 1) {
+					questions[0].toAsk = false;
+					ensemble_ajouter_elt(&esuspect, 0);
+				}
+
+				for (uint8_t i = 0;
+				     i < questions[id].nb_qliees;
+				     i++) {
+					ensemble_retirer_elt(
+						&esuspect,
+					        questions[id].qliees[i]);
+				}
+
+			        maj_suspects(ls, id, false);
+			}
+
+			ensemble_afficher ("suspect : ", esuspect);
+		}
+	}
 }
