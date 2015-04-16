@@ -11,6 +11,7 @@ void maj_suspects(struct liste_suspects *ls, uint8_t id, bool traitPresent);
 void execution_jeu(struct liste_suspects *ls,
 		   struct question *questions,
 		   ensemble_t esuspect);
+void libere_questions (struct question *questions);
 
 int main(void)
 {
@@ -41,6 +42,7 @@ int main(void)
 	}
 
 /* Liberation de la mémoire */
+	libere_questions (questions);
 	detruire_liste_suspects (&ls);
 
 	return 0;
@@ -266,5 +268,12 @@ void execution_jeu(struct liste_suspects *ls,
 
 			ensemble_afficher ("suspect : ", esuspect);
 		}
+	}
+}
+
+void libere_questions (struct question *questions)
+{
+	for (uint8_t i = 0; i < NOMBRE_QUESTIONS; i++) {
+		free (questions[i].qliees);
 	}
 }
