@@ -1,6 +1,7 @@
 #ifndef ENSEMBLE_H
 #define ENSEMBLE_H
 
+#include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>
 

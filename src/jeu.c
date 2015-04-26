@@ -153,35 +153,30 @@ init_questions(struct question *questions)
 void
 init_suspects (struct liste_suspects *ls)
 {
-	struct suspect *suspects[NOMBRE_SUSPECTS];
-
-	suspects[0] = creer_suspect("André ", ANDRE);
-	suspects[1] = creer_suspect("Philippe", PHILIPPE);
-	suspects[2] = creer_suspect("Jean-Louis", JEAN_LOUIS);
-	suspects[3] = creer_suspect("François", FRANCOIS);
-	suspects[4] = creer_suspect("Robert", ROBERT);
-	suspects[5] = creer_suspect("Carole", CAROLE);
-	suspects[6] = creer_suspect("Mélanie", MELANIE);
-	suspects[7] = creer_suspect("Fabien", FABIEN);
-	suspects[8] = creer_suspect("Patricia", PATRICIA);
-	suspects[9] = creer_suspect("Baptiste", BAPTISTE);
-	suspects[10] = creer_suspect("Sébastien", SEBASTIEN);
-	suspects[11] = creer_suspect("Olivier", OLIVIER);
-	suspects[12] = creer_suspect("Nicolas", NICOLAS);
-	suspects[13] = creer_suspect("Luc   ", LUC);
-	suspects[14] = creer_suspect("Simon ", SIMON);
-	suspects[15] = creer_suspect("Maxime", MAXIME);
-	suspects[16] = creer_suspect("Cédric", CEDRIC);
-	suspects[17] = creer_suspect("Pierre", PIERRE);
-	suspects[18] = creer_suspect("Martin", MARTIN);
-	suspects[19] = creer_suspect("Elodie", ELODIE);
-	suspects[20] = creer_suspect("Victor", VICTOR);
-	suspects[21] = creer_suspect("Georges", GEORGES);
-	suspects[22] = creer_suspect("Thierry", THIERRY);
-	suspects[23] = creer_suspect("Céline", CELINE);
-
-	for (uint8_t i = 0; i < NOMBRE_SUSPECTS; i++)
-	        ajouter_suspect(ls, suspects[i]);
+	ajouter_suspect(ls, creer_suspect("André ", ANDRE));
+	ajouter_suspect(ls, creer_suspect("Philippe", PHILIPPE));
+	ajouter_suspect(ls, creer_suspect("Jean-Louis", JEAN_LOUIS));
+	ajouter_suspect(ls, creer_suspect("François", FRANCOIS));
+	ajouter_suspect(ls, creer_suspect("Robert", ROBERT));
+	ajouter_suspect(ls, creer_suspect("Carole", CAROLE));
+	ajouter_suspect(ls, creer_suspect("Mélanie", MELANIE));
+	ajouter_suspect(ls, creer_suspect("Fabien", FABIEN));
+	ajouter_suspect(ls, creer_suspect("Patricia", PATRICIA));
+	ajouter_suspect(ls, creer_suspect("Baptiste", BAPTISTE));
+	ajouter_suspect(ls, creer_suspect("Sébastien", SEBASTIEN));
+	ajouter_suspect(ls, creer_suspect("Olivier", OLIVIER));
+	ajouter_suspect(ls, creer_suspect("Nicolas", NICOLAS));
+	ajouter_suspect(ls, creer_suspect("Luc   ", LUC));
+	ajouter_suspect(ls, creer_suspect("Simon ", SIMON));
+	ajouter_suspect(ls, creer_suspect("Maxime", MAXIME));
+	ajouter_suspect(ls, creer_suspect("Cédric", CEDRIC));
+	ajouter_suspect(ls, creer_suspect("Pierre", PIERRE));
+	ajouter_suspect(ls, creer_suspect("Martin", MARTIN));
+	ajouter_suspect(ls, creer_suspect("Elodie", ELODIE));
+	ajouter_suspect(ls, creer_suspect("Victor", VICTOR));
+	ajouter_suspect(ls, creer_suspect("Georges", GEORGES));
+	ajouter_suspect(ls, creer_suspect("Thierry", THIERRY));
+	ajouter_suspect(ls, creer_suspect("Céline", CELINE));
 }
 
 void
@@ -255,7 +250,7 @@ execution_jeu(struct liste_suspects *ls,
 			}
 
 			/* DEBUG */
-			/* ensemble_afficher ("suspect : ", esuspect); */
+			ensemble_afficher ("suspect : ", esuspect);
 		}
 	}
 }
@@ -277,7 +272,7 @@ maj_suspects(struct liste_suspects *ls, uint8_t id, bool traitPresent)
 	}
 
 	/* DEBUG */
-	/* affiche_liste_suspects (ls); */
+	affiche_liste_suspects (ls);
 }
 
 uint8_t
