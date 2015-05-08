@@ -7,13 +7,10 @@
 #define NOMBRE_SUSPECTS  24
 
 struct question {
-	char * str;
-	bool toAsk;
-	uint8_t nb_qliees;
+	char *str; 		/* String de la question */
+	uint8_t nb_qliees;	/* Nombre de questions liées */
 	uint8_t *qliees;	/* Questions liées à ne plus poser si positif */
 };
-
-uint8_t qrestantes(const struct question *questions);
 
 /* Attributs des suspects */
 #define ANDRE             0b0001001000010001

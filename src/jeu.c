@@ -1,24 +1,35 @@
 #include <stdlib.h>
 #include <time.h>
+#include <string.h>
 
 #include "jeu.h"
 #include "suspect.h"
 #include "ensemble.h"
 
+/* #define DEBUG 1 Mettre à 1 pour affichages supplémentaires */
+bool verbose = false;
+
 void init_questions(struct question *questions);
 void init_suspects (struct liste_suspects *ls);
+char lecture_reponse(void);
 void maj_suspects(struct liste_suspects *ls, uint8_t id, bool traitPresent);
 void execution_jeu(struct liste_suspects *ls,
 		   struct question *questions,
-		   ensemble_t esuspect);
-void libere_questions (struct question *questions);
-void clear(void);
+		   ensemble_t esuspect,
+		   ensemble_t qPosees);
+void libere_questions(struct question *questions);
+void clear_input(void);
 
-int main(void)
+int
+main(int argc, char **argv)
 {
+/* Affichage plus complet si "-v" en argument */
+	if (argc == 2)
+		if (!strcmp(argv[1], "-v"))
+			verbose = true;
 
 /* Initialisation des questions */
-	srand (time(NULL));
+	srand (time(NULL)*time(NULL)); // Semble + aleatoire que time(NULL) seul
 	struct question questions[NOMBRE_QUESTIONS];
 	init_questions (questions);
 
@@ -29,22 +40,17 @@ int main(void)
 
 /* Création d'un ensemble d'attributs vide afin de décrire le suspect */
 	ensemble_t esuspect = ensemble_vide();
+/* Ensemble pour marquer les questions déjà posées */
+	ensemble_t qPosees = ensemble_vide();
 
 /* Execution de la boucle de jeu principale */
 	printf ("\t\t\t\033[32;1m== ENSIMAG Qui-est-ce ? ==\033[0m\n");
-	printf ("Choisissez un personnage et répondez aux questions.\n\n");
-	execution_jeu (ls, questions, esuspect);
-
-/* Fin de partie */
-	printf ("\n--> Partie terminée.\n");
-	if (ls->nb_suspects == 1) {
-		printf ("Le personnage que vous avez choisi est : \033[34;1m%s\033[0m\n"
-			, ls->tete->nom);
-	} else {
-		printf ("Personne ne correspond à la description.\n");
-		printf ("Vous avez \033[31;1mMENTI\033[0m !\n");
-		return 1;
-	}
+	printf ("Choisissez un personnage et répondez aux questions.\n");
+	if (!verbose)
+		printf ("Relancez avec l'argument \033[31;1m\"-v\"\033[0m pour"
+			" un affichage plus complet.\n");
+	printf ("\n");
+	execution_jeu (ls, questions, esuspect, qPosees);
 
 /* Liberation de la mémoire */
 	libere_questions (questions);
@@ -53,14 +59,21 @@ int main(void)
 	return 0;
 }
 
+/* Initialise les questions et les stocke dans le tableau questions */
 void
 init_questions(struct question *questions)
 {
 	questions[0].str = "Le suspect est-il un homme ? [o/n]\n";
-	questions[0].nb_qliees = 0;
+	questions[0].nb_qliees = 1;
+	questions[0].qliees = malloc (questions[0].nb_qliees
+				      * sizeof (uint8_t));
+	questions[0].qliees[0] = 1;
 
 	questions[1].str = "Le suspect est-il une femme ? [o/n]\n";
-	questions[1].nb_qliees = 0;
+	questions[1].nb_qliees = 1;
+	questions[1].qliees = malloc (questions[1].nb_qliees
+				      * sizeof (uint8_t));
+	questions[1].qliees[0] = 0;
 
 	questions[2].str = "Le suspect a-t-il une moustache ? [o/n]\n";
 	questions[2].nb_qliees = 0;
@@ -145,11 +158,9 @@ init_questions(struct question *questions)
 	questions[13].str = "Le suspect a-t-il un chapeau ? [o/n]\n";
 	questions[13].nb_qliees = 0;
 	questions[13].qliees = NULL;
-
-	for (uint8_t i = 0; i < NOMBRE_QUESTIONS; i++)
-	        questions[i].toAsk = true;
 }
 
+/* Crée les suspects et les ajoute à la liste ls */
 void
 init_suspects (struct liste_suspects *ls)
 {
@@ -179,82 +190,107 @@ init_suspects (struct liste_suspects *ls)
 	ajouter_suspect(ls, creer_suspect("Céline", CELINE));
 }
 
+/* Récupère les entrées de stdin jusqu'au NewLine suivant.
+   Permet d'éviter de répondre par erreur à plusieurs questions d'un coup */
 void
 clear_input (void)
 {
 	while (getchar () != '\n');
 }
 
+/* Boucle de jeu principale :
+ * Tant qu'il reste des questions ou plus d'un suspect dans la liste,
+ * boucle et pose les questions restantes.
+ *
+ * En sortie de la boucle, soit il reste un suspect et le jeu s'est bien
+ * déroulé, soit il n'en reste aucun et le témoin a menti,
+ * soit il n'en reste plusieurs et aucune question et le témoin a aussi menti
+ */
 void
 execution_jeu(struct liste_suspects *ls,
 	      struct question *questions,
-	      ensemble_t esuspect)
+	      ensemble_t esuspect,
+	      ensemble_t qPosees)
 {
-	while ((ls->nb_suspects > 1) && (qrestantes(questions) > 0)) {
+	while ((ls->nb_suspects > 1)
+	       && (ensemble_cardinal (qPosees)) < NOMBRE_QUESTIONS) {
+
+		/* Tire un id de question aléatoirement */
 		uint8_t id = rand() % NOMBRE_QUESTIONS;
-		if (questions[id].toAsk) {
+
+		/* On la traite que si celle-ci n'a pas encore été posée */
+		if (!ensemble_appartient (qPosees, id)) {
+			/* Affichage et marquage de la question */
 			printf (questions[id].str);
-			questions[id].toAsk = false;
+			ensemble_ajouter_elt(&qPosees, id);
 
-			char ans = '0';
-			while ((ans != 'o') && (ans != 'n')) {
-				scanf ("%c", &ans);
+			char ans = lecture_reponse ();
 
-				if ((ans != 'o') && (ans != 'n')
-				    && (ans != '\n')) {
-					fprintf (stderr,
-						 "Répondez par (o)ui"
-						 " ou (n)on !\n");
-				}
-
-				clear_input();
-			}
-
+			/* Traitement de la réponse */
 			if (ans == 'o') {
 				ensemble_ajouter_elt(&esuspect, id);
 
-				if (id == 0) {
-					questions[1].toAsk = false;
-					ensemble_retirer_elt(&esuspect, 1);
-				} else if (id == 1) {
-					questions[0].toAsk = false;
-					ensemble_retirer_elt(&esuspect, 0);
-				}
-
+				/* Marquage des questions liées comme à ne plus poser */
 				for (uint8_t i = 0; i < questions[id].nb_qliees; i++) {
-					questions[questions[id].qliees[i]].toAsk
-						= false;
+					ensemble_retirer_elt(&esuspect,
+							     questions[id].qliees[i]);
+					ensemble_ajouter_elt(&qPosees,
+							     questions[id].qliees[i]);
 				}
 
 			        maj_suspects (ls, id, true);
 			} else {
 				ensemble_retirer_elt(&esuspect, id);
-
-				if (id == 0) {
-					questions[1].toAsk = false;
-					ensemble_ajouter_elt(&esuspect, 1);
-				} else if (id == 1) {
-					questions[0].toAsk = false;
-					ensemble_ajouter_elt(&esuspect, 0);
-				}
-
-				for (uint8_t i = 0;
-				     i < questions[id].nb_qliees;
-				     i++) {
-					ensemble_retirer_elt(
-						&esuspect,
-					        questions[id].qliees[i]);
-				}
-
 			        maj_suspects (ls, id, false);
 			}
 
-			/* DEBUG */
-			ensemble_afficher ("suspect : ", esuspect);
+			if (verbose){
+				ensemble_afficher ("suspect : ", esuspect);
+				ensemble_afficher ("qPosees  : ", qPosees);
+			}
 		}
+	}
+
+/* Fin de partie */
+	printf ("\n--> Partie terminée.\n");
+	/* Si il reste un seul suspect, le résultat est correct */
+	if (ls->nb_suspects == 1) {
+		printf ("Le personnage que vous avez choisi est"
+			" : \033[34;1m%s\033[0m\n", ls->tete->nom);
+	} else { // sinon, le témoin a menti
+		printf ("Personne ne correspond à la description.\n");
+		printf ("Vous avez \033[31;1mMENTI\033[0m !\n");
+		exit(1);
 	}
 }
 
+/* Invite l'utilisateur à répondre à la question jusqu'à ce qu'il fournisse
+   une réponse valide */
+char
+lecture_reponse(void) {
+	char ans = '\0';
+	while ((ans != 'o') && (ans != 'n')) {
+		scanf ("%c", &ans);
+
+		if ((ans != 'o') && (ans != 'n')
+		    && (ans != '\n')) {
+			fprintf (stderr,
+				 "Répondez par (o)ui"
+				 " ou (n)on !\n");
+		}
+
+		clear_input();
+	}
+
+	return ans;
+}
+
+
+/* Met à jour la liste des suspects en fonction de la dernière question.
+ * Si traitPresent vaut true, on ne garde que les suspects qui ont le
+ * trait d'indice id.
+ * Si il vaut false, on ne garde que ceux qui ne l'ont pas.
+ */
 void
 maj_suspects(struct liste_suspects *ls, uint8_t id, bool traitPresent)
 {
@@ -271,23 +307,13 @@ maj_suspects(struct liste_suspects *ls, uint8_t id, bool traitPresent)
 		scour = ssuiv;
 	}
 
-	/* DEBUG */
-	affiche_liste_suspects (ls);
+	if (verbose)
+		affiche_liste_suspects (ls);
 }
 
-uint8_t
-qrestantes(const struct question *questions)
-{
-        uint8_t count = 0;
-	for (uint8_t i = 0; i < NOMBRE_QUESTIONS; i++)
-		if (questions[i].toAsk)
-			count++;
-
-	return count;
-}
-
+/* Libere tous les tableaux de questions liées alloués */
 void
-libere_questions (struct question *questions)
+libere_questions(struct question *questions)
 {
 	for (uint8_t i = 0; i < NOMBRE_QUESTIONS; i++) {
 		free (questions[i].qliees);

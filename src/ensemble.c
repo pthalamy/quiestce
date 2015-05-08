@@ -1,8 +1,8 @@
 #include "ensemble.h"
 
-#define BIT(e, n) ((e >> n) & 1)
-#define SET_BIT(e, n) (e |= 1 << n)
-#define CLEAR_BIT(e, n) (e &= ~(1 << n))
+#define BIT(e, n) ((e >> n) & 1) /* Remplacé par la valeur du bit n de e */
+#define SET_BIT(e, n) (e |= 1 << n) /* Met le bit n de e à 1 */
+#define CLEAR_BIT(e, n) (e &= ~(1 << n)) /* Met le bit n de e à 1 */
 
 ensemble_t ensemble_vide(void) {
 	return 0x0; // 16 bits à 0
